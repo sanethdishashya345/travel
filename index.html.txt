@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KICKZ | Elite Sneaker Boutique</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f8f9fa; --card-bg: #ffffff; --text: #2d3436;
+            --primary: #0984e3; --secondary: #6c5ce7; --accent: #00b894;
+            --shadow: rgba(0,0,0,0.1); --danger: #ff7675;
+            --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f0f0f; --card-bg: #1a1a1a; --text: #f5f6fa;
+            --shadow: rgba(0,0,0,0.6);
+        }
+
+        * { box-sizing: border-box; transition: background 0.4s, color 0.4s; cursor: none !important; }
+        
+        body { 
+            margin: 0; font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); 
+            overflow-x: hidden; opacity: 0; animation: pageEntry 1s ease forwards;
+        }
+
+        @keyframes pageEntry { to { opacity: 1; } }
+
+        #cursor {
+            width: 20px; height: 20px; background: var(--primary); border-radius: 50%;
+            position: fixed; pointer-events: none; z-index: 10000;
+            transition: transform 0.15s ease-out, background 0.3s;
+            mix-blend-mode: difference;
+        }
+
+        nav {
+            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px);
+            padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 30px var(--shadow);
+        }
+        [data-theme="dark"] nav { background: rgba(15, 15, 15, 0.7); }
+
+        .search-container {
+            position: relative; width: 40px; transition: 0.5s var(--spring);
+            background: var(--bg); border-radius: 30px; overflow: hidden;
+            display: flex; align-items: center;
+        }
+        .search-container.active { width: 250px; padding: 0 15px; box-shadow: 0 0 20px var(--primary); }
+        #searchInput {
+            border: none; background: none; padding: 10px; width: 100%; outline: none;
+            color: var(--text); font-family: inherit;
+        }
+
+        .brand-logo {
+            font-size: 32px; font-weight: 900; letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-transform: uppercase; transition: 0.3s var(--spring);
+        }
+
+        .hero {
+            height: 50vh; width: 100%; position: relative;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), 
+                        url('https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&q=80&w=1600');
+            background-size: cover; background-position: center; background-attachment: fixed;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;
+        }
+
+        .filters { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 30px 5% 10px; flex-wrap: wrap; }
+        .filter-chip {
+            padding: 8px 25px; border-radius: 30px; background: var(--card-bg);
+            border: 2px solid transparent; color: var(--text); font-weight: 600;
+            box-shadow: 0 5px 15px var(--shadow); transition: 0.3s;
+        }
+        .filter-chip.active { border-color: var(--primary); background: var(--primary); color: white; }
+
+        .sort-select {
+            padding: 8px 15px; border-radius: 20px; background: var(--card-bg);
+            color: var(--text); border: 1px solid var(--shadow); font-family: inherit; outline: none;
+        }
+
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 40px; padding: 30px 5% 100px; }
+        
+        .card {
+            background: var(--card-bg); border-radius: 40px; padding: 30px;
+            box-shadow: 0 20px 40px var(--shadow); text-align: center;
+            position: relative; animation: cardReveal 0.8s var(--spring) forwards;
+        }
+
+        .wishlist-btn {
+            position: absolute; top: 20px; right: 20px; background: var(--bg);
+            width: 40px; height: 40px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 1.2rem;
+            box-shadow: 0 5px 10px var(--shadow); z-index: 10; transition: 0.3s;
+        }
+        .wishlist-btn.active { color: var(--danger); transform: scale(1.1); }
+
+        .img-container {
+            width: 100%; height: 220px; border-radius: 30px; background: var(--bg);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; margin-bottom: 20px;
+        }
+
+        .card img { 
+            width: 90%; transform: rotate(-15deg); transition: 0.6s var(--spring);
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.2));
+        }
+        .card:hover img { transform: rotate(0deg) scale(1.2); }
+
+        .side-panel {
+            position: fixed; right: -450px; top: 0; width: 400px; height: 100%;
+            background: var(--card-bg); box-shadow: -20px 0 50px rgba(0,0,0,0.2);
+            z-index: 2000; padding: 40px; transition: 0.6s cubic-bezier(0.85, 0, 0.15, 1);
+        }
+        .side-panel.open { right: 0; }
+        
+        .qty-controls {
+            display: flex; align-items: center; gap: 12px; background: var(--bg);
+            padding: 5px 12px; border-radius: 12px; font-weight: bold;
+        }
+
+        .btn-buy {
+            width: 100%; padding: 18px; border: none; border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; font-weight: 800; transition: 0.3s;
+        }
+
+        #toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: var(--text); color: var(--bg); padding: 15px 40px;
+            border-radius: 50px; font-weight: bold; transition: 0.5s var(--spring); z-index: 9999;
+        }
+        #toast.visible { transform: translateX(-50%) translateY(0); }
+
+        .modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 5000; display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px); opacity: 0; transition: 0.4s;
+        }
+        .modal.open { display: flex; opacity: 1; }
+        .modal-content {
+            background: var(--card-bg); width: 90%; max-width: 800px;
+            border-radius: 40px; display: grid; grid-template-columns: 1fr 1fr;
+            overflow: hidden; transform: scale(0.8); transition: 0.5s var(--spring);
+        }
+        .modal.open .modal-content { transform: scale(1); }
+
+        @media (max-width: 768px) { .modal-content { grid-template-columns: 1fr; } .side-panel { width: 100%; } }
+    </style>
+</head>
+<body data-theme="light">
+
+<div id="cursor"></div>
+
+<nav>
+    <div class="brand-logo" onclick="location.reload()">KICKZ</div>
+    
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <div class="search-container" id="searchBox">
+            <span onclick="app.toggleSearch()" style="padding: 10px;">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search kicks..." oninput="app.handleSearch(this.value)">
+        </div>
+        
+        <div class="nav-actions" style="display:flex; align-items:center;">
+            <button class="icon-btn" onclick="app.toggleTheme()" style="background:none; border:none; font-size:1.6rem; margin: 0 15px;">🌓</button>
+            <button id="cartBtn" class="icon-btn" onclick="app.toggleCart()" style="background:none; border:none; font-size:1.6rem; position:relative;">
+                🛒 <span id="cartCount" style="position:absolute; top:-5px; right:-10px; font-size:11px; background:var(--danger); color:white; padding:2px 7px; border-radius:50%;">0</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <h1 id="heroTitle" style="font-size: 4rem; margin:0;">KICKZ ELITE</h1>
+    <p style="font-weight: 300; letter-spacing: 5px; opacity: 0.8;">THE FUTURE OF FOOTWEAR</p>
+</section>
+
+<div class="container" id="shop">
+    <div class="filters">
+        <div class="filter-chip active" onclick="app.filterByBrand('All', this)">All</div>
+        <div class="filter-chip" onclick="app.filterByBrand('Nike', this)">Nike</div>
+        <div class="filter-chip" onclick="app.filterByBrand('Adidas', this)">Adidas</div>
+        <select class="sort-select" onchange="app.sortProducts(this.value)">
+            <option value="default">Sort By</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+        </select>
+    </div>
+    <div class="products-grid" id="productGrid"></div>
+</div>
+
+<div id="quickModal" class="modal" onclick="app.closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div id="modalImg" style="background: #f1f1f1; display: flex; align-items: center; justify-content: center; padding: 40px;">
+            <img src="" style="width: 100%; filter: drop-shadow(0 30px 50px rgba(0,0,0,0.3))">
+        </div>
+        <div style="padding: 40px; display: flex; flex-direction: column; justify-content: center;">
+            <h2 id="mTitle" style="font-size: 2rem; margin: 0;"></h2>
+            <p id="mBrand" style="color: var(--primary); font-weight: bold;"></p>
+            <p style="opacity: 0.7; line-height: 1.6;">Premium grade materials with responsive cushioning. Designed for both performance and aesthetic appeal.</p>
+            <h3 id="mPrice" style="font-size: 1.5rem;"></h3>
+            <button class="btn-buy" id="mBuyBtn">ADD TO COLLECTION</button>
+        </div>
+    </div>
+</div>
+
+<div id="cartSidebar" class="side-panel">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3>My Collection 🎒</h3>
+        <span onclick="app.toggleCart()" style="font-size:1.5rem; cursor:pointer;">✕</span>
+    </div>
+    <div id="cartList" style="margin-top:20px; max-height: 65vh; overflow-y:auto; padding-right:10px;"></div>
+    <div style="position:absolute; bottom:40px; left:40px; right:40px;">
+        <h3 style="display:flex; justify-content:space-between;">Total: <span>Rs. <span id="cartTotal">0</span></span></h3>
+        <button class="btn-buy" onclick="app.checkout()">CHECKOUT NOW</button>
+    </div>
+</div>
+
+<div id="toast">Sneaker Secured!</div>
+
+<script>
+    const app = {
+        products: [
+            { id: 1, name: "Air Max Pulse", price: 15500, brand: "Nike", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800" },
+            { id: 2, name: "UltraBoost 1.0", price: 18200, brand: "Adidas", img: "https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=800" },
+            { id: 3, name: "Air Jordan Retro", price: 24500, brand: "Nike", img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800" },
+            { id: 4, name: "Adidas Yeezy 350", price: 28000, brand: "Adidas", img: "https://images.unsplash.com/photo-1584735175315-9d5df23860e6?w=800" },
+            { id: 5, name: "Nike Pegasus 40", price: 16500, brand: "Nike", img: "https://images.unsplash.com/photo-1543508282-6319a3e4621f?w=800" },
+            { id: 6, name: "Forum Low OG", price: 12000, brand: "Adidas", img: "https://images.unsplash.com/photo-1551107644-79bb0c58732e?w=800" }
+        ],
+        cart: [],
+        wishlist: new Set(),
+
+        init() {
+            // Load from LocalStorage
+            const savedCart = localStorage.getItem('kickz_cart');
+            const savedWish = localStorage.getItem('kickz_wishlist');
+            if(savedCart) this.cart = JSON.parse(savedCart);
+            if(savedWish) this.wishlist = new Set(JSON.parse(savedWish));
+
+            this.renderProducts(this.products);
+            this.initCursor();
+            this.updateUI();
+            if(localStorage.getItem('theme') === 'dark') this.toggleTheme();
+        },
+
+        initCursor() {
+            const cursor = document.getElementById('cursor');
+            window.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+            document.addEventListener('mouseover', (e) => {
+                if(e.target.closest('button, .card, .brand-logo, .filter-chip, .wishlist-btn, select')) {
+                    cursor.style.transform = 'scale(3.5)';
+                }
+            });
+            document.addEventListener('mouseout', (e) => {
+                if(e.target.closest('button, .card, .brand-logo, .filter-chip, .wishlist-btn, select')) {
+                    cursor.style.transform = 'scale(1)';
+                }
+            });
+        },
+
+        renderProducts(list) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = list.map((p, i) => `
+                <div class="card" style="animation-delay: ${i*0.1}s">
+                    <div class="wishlist-btn ${this.wishlist.has(p.id) ? 'active' : ''}" onclick="app.toggleWishlist(${p.id})">
+                        ${this.wishlist.has(p.id) ? '❤️' : '🤍'}
+                    </div>
+                    <div class="img-container" onclick="app.openModal(${p.id})">
+                        <img src="${p.img}" alt="${p.name}">
+                    </div>
+                    <h3>${p.name}</h3>
+                    <p style="color:var(--primary); font-weight:bold;">Rs. ${p.price.toLocaleString()}</p>
+                    <button class="btn-buy" onclick="app.addToCart(${p.id})">ADD TO CART</button>
+                </div>
+            `).join('');
+        },
+
+        sortProducts(criteria) {
+            let sorted = [...this.products];
+            if (criteria === 'price-low') sorted.sort((a, b) => a.price - b.price);
+            if (criteria === 'price-high') sorted.sort((a, b) => b.price - a.price);
+            this.renderProducts(sorted);
+        },
+
+        filterByBrand(brand, el) {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            const filtered = brand === 'All' ? this.products : this.products.filter(p => p.brand === brand);
+            this.renderProducts(filtered);
+        },
+
+        toggleWishlist(id) {
+            if(this.wishlist.has(id)) this.wishlist.delete(id);
+            else this.wishlist.add(id);
+            
+            localStorage.setItem('kickz_wishlist', JSON.stringify([...this.wishlist]));
+            this.renderProducts(this.products); 
+        },
+
+        handleSearch(val) {
+            const filtered = this.products.filter(p => 
+                p.name.toLowerCase().includes(val.toLowerCase()) || 
+                p.brand.toLowerCase().includes(val.toLowerCase())
+            );
+            this.renderProducts(filtered);
+        },
+
+        addToCart(id) {
+            const existing = this.cart.find(item => item.id === id);
+            if(existing) {
+                existing.qty++;
+            } else {
+                const p = this.products.find(item => item.id === id);
+                this.cart.push({...p, qty: 1});
+            }
+            this.saveCart();
+            this.updateUI();
+            this.showToast();
+        },
+
+        changeQty(id, delta) {
+            const item = this.cart.find(i => i.id === id);
+            if(item) {
+                item.qty += delta;
+                if(item.qty <= 0) this.cart = this.cart.filter(i => i.id !== id);
+            }
+            this.saveCart();
+            this.updateUI();
+        },
+
+        saveCart() {
+            localStorage.setItem('kickz_cart', JSON.stringify(this.cart));
+        },
+
+        updateUI() {
+            const count = this.cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cartCount').innerText = count;
+            
+            document.getElementById('cartList').innerHTML = this.cart.map(item => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:var(--bg); border-radius:20px; margin-bottom:15px; box-shadow: 0 4px 10px var(--shadow);">
+                    <div style="flex:1">
+                        <b>${item.name}</b><br>
+                        <small style="color:var(--primary)">Rs. ${(item.price * item.qty).toLocaleString()}</small>
+                    </div>
+                    <div class="qty-controls">
+                        <span onclick="app.changeQty(${item.id}, -1)" style="cursor:pointer; padding:0 5px;">-</span>
+                        <span>${item.qty}</span>
+                        <span onclick="app.changeQty(${item.id}, 1)" style="cursor:pointer; padding:0 5px;">+</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            const total = this.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            document.getElementById('cartTotal').innerText = total.toLocaleString();
+        },
+
+        toggleSearch() {
+            const box = document.getElementById('searchBox');
+            box.classList.toggle('active');
+            if(box.classList.contains('active')) document.getElementById('searchInput').focus();
+        },
+
+        toggleTheme() {
+            const body = document.body;
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        },
+
+        toggleCart() { document.getElementById('cartSidebar').classList.toggle('open'); },
+        
+        openModal(id) {
+            const p = this.products.find(item => item.id === id);
+            document.querySelector('#modalImg img').src = p.img;
+            document.getElementById('mTitle').innerText = p.name;
+            document.getElementById('mBrand').innerText = p.brand;
+            document.getElementById('mPrice').innerText = `Rs. ${p.price.toLocaleString()}`;
+            document.getElementById('mBuyBtn').onclick = () => { this.addToCart(p.id); this.closeModal(); };
+            document.getElementById('quickModal').classList.add('open');
+        },
+
+        closeModal() { document.getElementById('quickModal').classList.remove('open'); },
+        
+        showToast() {
+            const t = document.getElementById('toast');
+            t.classList.add('visible');
+            setTimeout(() => t.classList.remove('visible'), 2000);
+        },
+
+        checkout() { 
+            if(this.cart.length === 0) return alert("Your collection is empty!");
+            alert("Order Placed! Get ready for your new KICKZ.");
+            this.cart = [];
+            this.saveCart();
+            this.updateUI();
+            this.toggleCart();
+        }
+    };
+
+    app.init();
+</script>
+</body>
+</html>
